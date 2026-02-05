@@ -1,2 +1,11 @@
 .env
 generated/
+__pycache__/
+.venv/
+crash_report.txt
+debug_planner.py
+read_log.py
+error_log.txt
+.vscode/
+.idea/
+.vscode-test/

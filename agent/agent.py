@@ -20,14 +20,23 @@ state = {
 }
 
 def planner_agent(state: dict)->dict:
-    user_prompt = state["user_prompt"]
-    resp = llm.with_structured_output(Plan).invoke(planner_prompt(user_prompt))
-    state["plan"] = resp
-    
-    project_path = set_project_base_path(resp.name)
-    print(f"Project path set to: {project_path}")
-    
-    return state
+    print("DEBUG: Inside planner_agent")
+    try:
+        user_prompt = state["user_prompt"]
+        print(f"DEBUG: User prompt: {user_prompt}")
+        resp = llm.with_structured_output(Plan).invoke(planner_prompt(user_prompt))
+        print("DEBUG: LLM response received")
+        state["plan"] = resp
+        
+        project_path = set_project_base_path(resp.name)
+        print(f"Project path set to: {project_path}")
+        
+        return state
+    except Exception as e:
+        print(f"ERROR in planner_agent: {e}")
+        import traceback
+        traceback.print_exc()
+        raise e
 
 def architect_agent(state: dict)-> dict:
     plan_data = state["plan"].model_dump_json()
@@ -125,6 +134,12 @@ graph.add_conditional_edges("reviewer", should_continue, {
 agent = graph.compile()
 
 if __name__ == "__main__":
-    user_prompt = "Create a simple calculator web app with good ui"
-    result = agent.invoke({"user_prompt": user_prompt})
-    print(result)
+    try:
+        user_prompt = "Create a simple calculator web app with good ui"
+        result = agent.invoke({"user_prompt": user_prompt})
+        print(result)
+    except Exception as e:
+        import traceback
+        with open("crash_report.txt", "w", encoding="utf-8") as f:
+            f.write(traceback.format_exc())
+        print("Crashed. See crash_report.txt")
