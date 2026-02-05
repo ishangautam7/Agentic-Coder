@@ -9,7 +9,6 @@ _CURRENT_PROJECT_PATH = PROJECT_ROOT
 
 def set_project_base_path(project_name: str):
     global _CURRENT_PROJECT_PATH
-    # Sanitize project name to be safe for file system
     safe_name = "".join(c for c in project_name if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')
     _CURRENT_PROJECT_PATH = PROJECT_ROOT / safe_name
     _CURRENT_PROJECT_PATH.mkdir(parents=True, exist_ok=True)

@@ -1,5 +1,12 @@
-from pydantic import BaseModel, Field, ConfigDict
 
+from langchain_groq import ChatGroq
+from dotenv import load_dotenv
+from pydantic import BaseModel, Field, ConfigDict
+import os
+
+load_dotenv()
+
+# Copy from states.py
 class File(BaseModel):
     name: str = Field(description="The name of the file")
     content: str = Field(description="The content of the file")
@@ -13,16 +20,27 @@ class Plan(BaseModel):
     features: list[str] = Field(description = f"""The list of features that will be provided in the given app. E.g: ["User authentication", "CRUD operations", "Data visualization"]""")
     files: list[File] = Field(description = """The list of files that will be provided in the given app. E.g: ["index.html", "style.css", "script.js"]""")
 
-class ImplementationTask(BaseModel):
-    filepath: str = Field(description="The path of the file")
-    task_description: str = Field(description="The task to be performed on the file")
+# Setup LLM
+try:
+    llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0.1, max_retries=2)
+    
+    # Prompt
+    user_prompt = "Create a simple calculator web app"
+    PLANNER_PROMPT = f"""
+    You are a PLANNER agent. Convert the user prompt into complete engineering prompt with proper plan.
+    Return ONLY the structured JSON data according to the TaskPlan schema. 
+    Do not include any conversational text, headers, or markdown formatting outside the tool call.
 
-class TaskPlan(BaseModel):
-    implementation_steps: list[ImplementationTask] = Field(description="The list of implementation tasks")
-    model_config: ConfigDict = ConfigDict(extra="allow")
+    User request: {user_prompt}
+    """
+    
+    print("Invoking LLM...")
+    resp = llm.with_structured_output(Plan).invoke(PLANNER_PROMPT)
+    print("Success!")
+    print(resp)
 
-class ReviewResult(BaseModel):
-    is_working: bool = Field(description="Whether the code is working or not")
-    feedback: str = Field(description="Feedback on the code")
-    next_steps: str = Field(description="Next steps to be taken")
-    model_config: ConfigDict = ConfigDict(extra="allow")
+except Exception as e:
+    print("Caught Exception:")
+    print(e)
+    import traceback
+    traceback.print_exc()

@@ -50,3 +50,29 @@ def coder_system_prompt()->str:
     - DO NOT invent or hallucinate new tools (like repo_browser, etc).
     - If you are unsure, use 'list_files' to explore.
     """
+
+def reviewer_prompt(plan:str, task_plan:str)->str:
+    return f"""
+    You are a Code Reviewer. Your only task is to review the code given to you including 
+    and to manage wherether the code runs or not and also to provide direction on how to run that code.
+
+    You have access to the following tools:
+    1. write_file(path, content): Create or overwrite a file.
+    2. read_file(path): Read file contents.
+    3. list_files(path): List files in a directory.
+    4. get_current_directory(): Get current working directory.
+    5. run_command(command): Run a shell command.
+
+    Plan to review:
+    {plan}
+
+    Task Plan to review:
+    {task_plan}
+
+    STRICT RULES:
+    - ONLY use the tools listed above.
+    - DO NOT invent or hallucinate new tools (like repo_browser, etc).
+    - If you are unsure, use 'list_files' to explore all the files.
+    - Make sure all the files are there. (e.g check is there is package.json for react file)
+    - Make sure to check package.json or other config files to ensure that they are complete.
+    """
